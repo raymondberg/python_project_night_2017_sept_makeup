@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from statistics import median
 import sys
 
 from prompt_toolkit import prompt, AbortAction
@@ -30,12 +31,15 @@ class TeamBuilder:
         self.user_dict = user_dict
 
     def execute(self, command):
-        tokens = command.split(' ')
+        tokens = command.split(' ') ## TODO: Handle trailing spaces
 
         if tokens[0] == 'add' and len(tokens) > 2:
             name = " ".join(tokens[1:-1])
             number = tokens[-1]
             return self.add(name, number)
+        if tokens[0] == 'list':
+            return self.show_list()
+
         return "You issued:" + command
 
     def add(self, name, number):
@@ -46,7 +50,13 @@ class TeamBuilder:
         self.user_dict[name] = safe_number
         return self.user_dict
 
+    def show_list(self):
+        total_ppl = len(user_dict)
+        median_line = median(user_dict.values()) if total_ppl != 0 else 0
+        return "Total People: {}\nMedian Lind Count: {}".format(total_ppl, median_line)
+
 ## Feature 1: Add command
+## Feature 2: List command
 
 def main(team_builder):
     history = InMemoryHistory()
