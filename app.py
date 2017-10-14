@@ -23,7 +23,6 @@ def get_names():
 
     return names
 
-
 command_completer = WordCompleter(['add', 'show'] + get_names(), ignore_case=True)
 
 class TeamBuilder:
@@ -39,7 +38,8 @@ class TeamBuilder:
             return self.add(name, number)
         if tokens[0] == 'list':
             return self.show_list()
-
+        if tokens[0] == 'group':
+            return self.group()
         return "You issued:" + command
 
     def add(self, name, number):
@@ -55,8 +55,24 @@ class TeamBuilder:
         median_line = median(user_dict.values()) if total_ppl != 0 else 0
         return "Total People: {}\nMedian Lind Count: {}".format(total_ppl, median_line)
 
+    def group(self):
+        sorted_tuples = sorted([ (value, name) for name,value in self.user_dict.items() ])
+
+        groups = []
+
+        while len(sorted_tuples) > 0:
+            group = []
+            pick_from_bottom = True
+            while len(sorted_tuples) > 0 and len(group) < 4:
+                group.append(sorted_tuples.pop(0)[1] if pick_from_bottom else sorted_tuples.pop()[1])
+                pick_from_bottom = not pick_from_bottom
+            groups.append(group)
+
+        return "\n".join(["Group: {}".format(', '.join([person for person in group])) for group in groups])
+
 ## Feature 1: Add command
 ## Feature 2: List command
+## Feature 3: Group command
 
 def main(team_builder):
     history = InMemoryHistory()
