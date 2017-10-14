@@ -26,9 +26,27 @@ def get_names():
 command_completer = WordCompleter(['add', 'show'] + get_names(), ignore_case=True)
 
 class TeamBuilder:
+    def __init__(self, user_dict):
+        self.user_dict = user_dict
+
     def execute(self, command):
+        tokens = command.split(' ')
+
+        if tokens[0] == 'add' and len(tokens) > 2:
+            name = " ".join(tokens[1:-1])
+            number = tokens[-1]
+            return self.add(name, number)
         return "You issued:" + command
 
+    def add(self, name, number):
+        try:
+            safe_number = int(number)
+        except ValueError:
+            return "Invalid number: {}".format(number)
+        self.user_dict[name] = safe_number
+        return self.user_dict
+
+## Feature 1: Add command
 
 def main(team_builder):
     history = InMemoryHistory()
@@ -39,15 +57,15 @@ def main(team_builder):
                           completer = command_completer,
                           history=history,
                           on_abort=AbortAction.RETRY)
-            team_builder.execute(text)
-            messages = team_builder.execute(text)
+            message = team_builder.execute(text)
 
-            print(messages)
+            print(message)
         except EOFError:
             break  # Control-D pressed.
 
     print('GoodBye!')
 
 if __name__ == '__main__':
-    team_builder = TeamBuilder()
+    user_dict = {}
+    team_builder = TeamBuilder(user_dict)
     main(team_builder)
