@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 from statistics import median
 import sys
+import random
 
+from faker import Faker
 from prompt_toolkit import prompt, AbortAction
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.contrib.completers import WordCompleter
@@ -26,53 +28,63 @@ def get_names():
 command_completer = WordCompleter(['add', 'show'] + get_names(), ignore_case=True)
 
 class TeamBuilder:
-    def __init__(self, user_dict):
-        self.user_dict = user_dict
+    def __init__(self):
+        self.user_dict = {}
 
     def execute(self, command):
         tokens = command.split(' ') ## TODO: Handle trailing spaces
 
         if tokens[0] == 'add' and len(tokens) > 2:
-            name = " ".join(tokens[1:-1])
+            name = ' '.join(tokens[1:-1])
             number = tokens[-1]
             return self.add(name, number)
         if tokens[0] == 'list':
             return self.show_list()
         if tokens[0] == 'group':
             return self.group()
-        return "You issued:" + command
+        return 'You issued:' + command
 
     def add(self, name, number):
         try:
             safe_number = int(number)
         except ValueError:
-            return "Invalid number: {}".format(number)
+            return 'Invalid number: {}'.format(number)
         self.user_dict[name] = safe_number
         return self.user_dict
 
     def show_list(self):
         total_ppl = len(user_dict)
         median_line = median(user_dict.values()) if total_ppl != 0 else 0
-        return "Total People: {}\nMedian Lind Count: {}".format(total_ppl, median_line)
+        return 'Total People: {}\nMedian Lind Count: {}'.format(total_ppl, median_line)
 
     def group(self):
+        fake = Faker()
         sorted_tuples = sorted([ (value, name) for name,value in self.user_dict.items() ])
 
         groups = []
 
         while len(sorted_tuples) > 0:
-            group = []
+            group = {
+                'name': fake.company(),
+                'room': fake.city(),
+                'members': []
+            }
+
             pick_from_bottom = True
-            while len(sorted_tuples) > 0 and len(group) < 4:
-                group.append(sorted_tuples.pop(0)[1] if pick_from_bottom else sorted_tuples.pop()[1])
+            while len(sorted_tuples) > 0 and len(group['members']) < 4:
+                group['members'].append(sorted_tuples.pop(0)[1] if pick_from_bottom else sorted_tuples.pop()[1])
                 pick_from_bottom = not pick_from_bottom
             groups.append(group)
 
-        return "\n".join(["Group: {}".format(', '.join([person for person in group])) for group in groups])
+        group_outputs = ['{name} at {room}: {members}'.format(**group) for group in groups]
+        return '\n'.join(group_outputs)
 
 ## Feature 1: Add command
 ## Feature 2: List command
 ## Feature 3: Group command
+## Feature 4. Enhance Group command
+## Feature 5. Enhance Group command
+# Make up random room names and add a room name for each group.
 
 def main(team_builder):
     history = InMemoryHistory()
@@ -92,6 +104,5 @@ def main(team_builder):
     print('GoodBye!')
 
 if __name__ == '__main__':
-    user_dict = {}
-    team_builder = TeamBuilder(user_dict)
+    team_builder = TeamBuilder()
     main(team_builder)
